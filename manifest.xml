@@ -1,0 +1,15 @@
+<package>
+  <description brief="dynamixel_hr_ros">
+
+     dynamixel_hr_ros
+
+  </description>
+  <author>hr</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/dynamixel_hr_ros</url>
+  <depend package="rospy"/>
+
+</package>
+
+
