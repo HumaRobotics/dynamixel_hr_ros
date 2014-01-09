@@ -45,5 +45,5 @@ if __name__=="__main__":
             print command
             time.sleep(0.1)
             
-        enabler.publish(False)
+        #~ enabler.publish(False)
         
