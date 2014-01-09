@@ -71,11 +71,10 @@ Speed is not preserved in this simple example.
 Library
 =======
 
-The ROS bindings are provided by a node called /dxl. The three following topics are provided::
-
-  */dxl/chain_state: provides the current position of the motors
-  */dxl/command_position: listens for position (and optional speed) commands
-  */dxl/enable: listens for activation/deactivation messages
+The ROS bindings are provided by a node called /dxl. The three following topics are provided:
+  * /dxl/chain_state: provides the current position of the motors
+  * /dxl/command_position: listens for position (and optional speed) commands
+  * /dxl/enable: listens for activation/deactivation messages
 
 The /dxl/chain_state topic will provide messages about the current position of the motors in radians. The message structure is the following::
 
