@@ -40,7 +40,7 @@ if __name__=="__main__":
             command=CommandPosition()
             command.id=f[0]
             command.angle=f[1]
-            command.speed=[0.1]*len(f[0])
+            command.speed=[1]*len(f[0])
             commander.publish(command)
             print command
             time.sleep(0.1)
