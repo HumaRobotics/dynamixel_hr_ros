@@ -1,4 +1,4 @@
-Int8[] ids
-Float32[] angle
-Float32[] speed
-Bool[] moving
+int8[] id
+float32[] angle
+#float32[] speed
+#bool[] moving

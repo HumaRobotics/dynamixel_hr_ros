@@ -2,14 +2,16 @@
 
 import roslib; roslib.load_manifest("dynamixel_hr_ros")
 import rospy
-from sensor_msgs.msg import *
 from std_msgs.msg import *
+
+from dynamixel_hr_ros.msg import ChainState,CommandPosition
 
 from dxl import *
 from threading import Thread
 import argparse
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 
@@ -39,8 +41,9 @@ class DxlROS(Thread):
         logging.info("Creating ROS elements")
         
         
-        self.buildPublishers()
-        self.buildSubscribers()
+        self.create_publisher("/dxl/chain_state",ChainState)
+        self.create_subscriber("/dxl/enable",Bool,self.enable)
+        self.create_subscriber("/dxl/command_position",CommandPosition,self.command_position)
         
         self.start()
 
@@ -54,6 +57,40 @@ class DxlROS(Thread):
         self.pub[topic]=rospy.Publisher(topic,type)
         self.publishers.append(topic)
         
+
+    def command_position(self,msg):
+        # check command validity
+        ids=msg.id
+        angles=msg.angle
+        speeds=msg.speed
+        if len(ids)!=len(angles):
+            logging.error("CommandPosition id and angle vector length do not match")
+            return
+        if len(speeds)>0 and len(ids)!=len(speeds):
+            logging.error("CommandPosition id and speed vector length do not match")
+            return
+        cangles=[]
+        cspeeds=[]
+        for i in range(0,len(ids)):
+            id=ids[i]
+            if id not in self.motors:
+                logging.error("CommandPosition id %d invalid"%id)
+                return
+            angle=angles[i]
+            cangle=self.chain.motors[id].registers["goal_pos"].fromsi(angle)
+            cangles.append(cangle)
+            if len(speeds)>0:
+                speed=speeds[i]
+                cspeed=self.chain.motors[id].registers["moving_speed"].fromsi(speed)
+                cspeeds.append(cspeed)
+        
+        if len(cspeeds)>0:
+            self.chain.sync_write_pos_speed(ids,cangles,cspeeds)
+        else:
+            self.chain.sync_write_pos(ids,cangles)
+                
+                
+        pass
         
     def run(self):
         r=rospy.Rate(float(self.rate))
@@ -62,39 +99,43 @@ class DxlROS(Thread):
             r.sleep()
         
     def publish(self):
-        data=[]
+        angle=[]
+        speed=[]
+        moving=[]
         for id in self.motors:
-            v=self.chain.get_reg_si(id,"present_position")
-            data.append(v)
+            a=self.chain.get_reg_si(id,"present_position")
+            angle.append(a)
+            #~ s=self.chain.get_reg_si(id,"present_speed")
+            #~ speed.append(s)
+            #~ m=self.chain.get_reg(id,"moving")
+            #~ if m==0: moving.append(False)
+            #~ else: moving.append(True)
         
-        msg=Float64MultiArray()
-        msg.data=data
-        self.pub["/dxl/present_position"].publish(msg) 
+        msg=ChainState()
+        msg.id=self.motors
+        msg.angle=angle
+        #~ msg.speed=speed
+        #~ msg.moving=moving
+        
+        
+        self.pub["/dxl/chain_state"].publish(msg) 
     
         
         
     def stop(self):
         self.do_stop=True
     
-    def buildPublishers(self):
-        self.create_publisher("/dxl/present_position",Float64MultiArray)
-
-                
-    
-    def buildSubscribers(self):
-        self.create_subscriber("/dxl/enable",Bool,self.enable)
-            
-                        
         
     def enable(self,msg):
         if msg.data==True:
-            self.chain.enable(self.bindings.keys())
+            self.chain.enable(self.motors)
         else:
-            self.chain.disable(self.bindings.keys())
+            self.chain.disable(self.motors)
 
 
 if __name__=="__main__":
         logging.basicConfig(level=logging.DEBUG)
+        logging.info("yooo")
         parser = argparse.ArgumentParser()
         parser.add_argument("--device", type=str,help="Serial device connected to the motor chain",default="/dev/ttyUSB0")
         parser.add_argument("--baudrate", type=int,help="Baudrate to use on the serial device",default=3000000)
