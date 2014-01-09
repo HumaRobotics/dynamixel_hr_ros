@@ -10,6 +10,7 @@ HumaRobotics ROS Bindings for Dynamixel Motors is a ROS package that provides bi
 Download
 =======
 You can obtain the latest sources using our Git repository:
+
 git clone git@github.com/HumaRobotics:dynamixel_hr_ros
 
 You can also download the latest release as a compressed archive from:
@@ -58,7 +59,7 @@ Now you can try the two example scripts provided::
 
   rosrun dynamixel_hr_ros record.py
   
-This wil disable the motor chain and record its positions for 5 seconds. These can be replayed by running::
+This will disable the motor chain so that you can move it by hand and record its position for 5 seconds. These positions can then be replayed by running::
 
   rosrun dynamixel_hr_ros replay.py
   
