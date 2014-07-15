@@ -32,7 +32,7 @@ class DxlROS(Thread):
         self.do_stop=False
         
         if self.motors==None: # Use IDs as names if no binding provided
-            self.motors=self.chain.motors.keys()
+            self.motors=[ id for id in self.chain.motors.keys() if self.chain.motors[id].is_motor()]
         else:
             for id  in self.motors:
                 if id not in self.chain.motors.keys():
@@ -102,7 +102,7 @@ class DxlROS(Thread):
         angle=[]
         speed=[]
         moving=[]
-        for id in self.motors:
+        for id in self.motors:            
             a=self.chain.get_reg_si(id,"present_position")
             angle.append(a)
             #~ s=self.chain.get_reg_si(id,"present_speed")
@@ -135,7 +135,7 @@ class DxlROS(Thread):
 
 if __name__=="__main__":
         logging.basicConfig(level=logging.DEBUG)
-        logging.info("yooo")
+        
         parser = argparse.ArgumentParser()
         parser.add_argument("--device", type=str,help="Serial device connected to the motor chain",default="/dev/ttyUSB0")
         parser.add_argument("--baudrate", type=int,help="Baudrate to use on the serial device",default=3000000)
@@ -143,7 +143,7 @@ if __name__=="__main__":
         args=parser.parse_args()
         
         logging.info("Connecting to chain on device %s at rate %d"%(args.device,args.baudrate) )
-        chain=dxlchain.DxlChain(args.device,rate=args.baudrate)
+        chain=dxlchain.DxlChain(args.device,rate=args.baudrate,timeout=0.5)
         motors=chain.get_motor_list()
         if len(motors)==0:
             logging.error("No motors found, exiting")
